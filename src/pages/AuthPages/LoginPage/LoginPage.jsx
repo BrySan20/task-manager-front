@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, message } from 'antd';
+import { Form, Input, Button } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2'; // Importamos SweetAlert2
 import './login.css';
 import loginImage from '../../../assets/images/list.png';
 
@@ -11,23 +12,17 @@ const LoginPage = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
 
-  // Esta función se ejecuta cuando el componente se monta
   useEffect(() => {
-    // Verificar si el usuario ya está autenticado
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('userRole');
-    
-    // Si el usuario accede directamente a /login y ya está autenticado
+
     if (location.pathname === '/login' && token) {
-      // Limpiar localStorage si el usuario regresó manualmente a /login
       localStorage.clear();
-      message.info('Sesión cerrada');
+      Swal.fire('Sesión cerrada', '', 'info'); // Mensaje de sesión cerrada
     }
-    
-    // Verificar si hay un token válido después de la limpieza
+
     const tokenAfterCheck = localStorage.getItem('token');
     if (tokenAfterCheck && userRole) {
-      // Redireccionar al dashboard correspondiente
       const redirectPath = getRedirectPath(userRole);
       navigate(redirectPath);
     }
@@ -46,39 +41,57 @@ const LoginPage = () => {
     }
   };
 
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const onFinish = async (values) => {
+    const { username, password } = values;
+
+    if (!validateEmail(username)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Correo inválido',
+        text: 'Por favor, ingresa un correo electrónico válido.',
+      });
+      return;
+    }
+
     setLoading(true);
-  
+
     try {
       const response = await axios.post('https://task-manager-back-2xgi.onrender.com/api/auth/login', {
-        email: values.username,
-        password: values.password,
+        email: username,
+        password: password,
       });
-  
+
       console.log('Full response data:', response.data);
-  
-      const { token, userId, role, username } = response.data.token;
-  
-      // Store auth data in localStorage
+
+      const { token, userId, role, username: user } = response.data.token;
+
       localStorage.setItem('token', token);
       localStorage.setItem('userId', userId);
       localStorage.setItem('userRole', role);
-      localStorage.setItem('username', username);
-  
-      console.log('User ID:', userId);
-      console.log('Token:', token);
-      console.log('Role:', role);
-      console.log('Username:', username);
-  
-      message.success('Login exitoso');
-      
-      // Redirect based on role
+      localStorage.setItem('username', user);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Login exitoso',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+
       const redirectPath = getRedirectPath(role);
       navigate(redirectPath);
     } catch (error) {
-      message.error('Credenciales incorrectas');
+      Swal.fire({
+        icon: 'error',
+        title: 'Credenciales incorrectas',
+        text: 'Por favor, verifica tu correo y contraseña.',
+      });
     }
-  
+
     setLoading(false);
   };
 
@@ -97,7 +110,7 @@ const LoginPage = () => {
         <Form.Item
           label="Email"
           name="username"
-          rules={[{ required: true, message: 'Please input your username!' }]}
+          rules={[{ required: true, message: 'Por favor, ingresa tu correo' }]}
         >
           <Input />
         </Form.Item>
@@ -105,7 +118,7 @@ const LoginPage = () => {
         <Form.Item
           label="Password"
           name="password"
-          rules={[{ required: true, message: 'Please input your password!' }]}
+          rules={[{ required: true, message: 'Por favor, ingresa tu contraseña' }]}
         >
           <Input.Password />
         </Form.Item>

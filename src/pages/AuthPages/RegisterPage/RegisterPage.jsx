@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, message } from 'antd';
+import { Form, Input, Button } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -13,23 +13,17 @@ const RegisterPage = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
 
-  // Esta función se ejecuta cuando el componente se monta
   useEffect(() => {
-    // Verificar si el usuario ya está autenticado
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('userRole');
 
-    // Si el usuario accede directamente a /login y ya está autenticado
     if (location.pathname === '/register' && token) {
-      // Limpiar localStorage si el usuario regresó manualmente a /login
       localStorage.clear();
-      message.info('Sesión cerrada');
+      Swal.fire('Sesión cerrada', '', 'info');
     }
 
-    // Verificar si hay un token válido después de la limpieza
     const tokenAfterCheck = localStorage.getItem('token');
     if (tokenAfterCheck && userRole) {
-      // Redireccionar al dashboard correspondiente
       const redirectPath = getRedirectPath(userRole);
       navigate(redirectPath);
     }
@@ -54,8 +48,8 @@ const RegisterPage = () => {
     if (!validator.isEmail(values.email)) {
       Swal.fire({
         icon: 'error',
-        title: 'Invalid Email',
-        text: 'Please provide a valid email address.',
+        title: 'Correo inválido',
+        text: 'Por favor, ingresa un correo electrónico válido.',
       });
       setLoading(false);
       return;
@@ -65,8 +59,8 @@ const RegisterPage = () => {
     if (!passwordValidation.test(values.password)) {
       Swal.fire({
         icon: 'error',
-        title: 'Invalid Password',
-        text: 'Password must be at least 8 characters long, with at least one uppercase letter and one number.',
+        title: 'Contraseña inválida',
+        text: 'La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.',
       });
       setLoading(false);
       return;
@@ -75,15 +69,15 @@ const RegisterPage = () => {
     if (/\s/.test(values.username) || /\s/.test(values.password)) {
       Swal.fire({
         icon: 'error',
-        title: 'No Spaces Allowed',
-        text: 'Username and password should not contain spaces.',
+        title: 'No se permiten espacios',
+        text: 'El nombre de usuario y la contraseña no deben contener espacios.',
       });
       setLoading(false);
       return;
     }
 
     try {
-      const response = await axios.post('https://task-manager-back-2xgi.onrender.com/api/auth/register', {
+      await axios.post('https://task-manager-back-2xgi.onrender.com/api/auth/register', {
         email: values.email,
         username: values.username,
         password: values.password,
@@ -92,15 +86,18 @@ const RegisterPage = () => {
       Swal.fire({
         icon: 'success',
         title: 'Registro exitoso',
-        //text: response.data.message,
+        text: 'Ahora puedes iniciar sesión con tus credenciales.',
+        showConfirmButton: false,
+        timer: 1500,
       });
+
       setLoading(false);
       navigate('/login');
     } catch (error) {
       Swal.fire({
         icon: 'error',
-        title: 'Error',
-        text: error.response?.data?.error || 'Error al registrar el usuario',
+        title: 'Error al registrar',
+        text: error.response?.data?.error || 'Hubo un problema al registrar el usuario.',
       });
       setLoading(false);
     }
@@ -117,27 +114,27 @@ const RegisterPage = () => {
         labelCol={{ span: 24 }}
         wrapperCol={{ span: 24 }}
       >
-        <h2 className="register-title">Register</h2>
+        <h2 className="register-title">Registro</h2>
         <Form.Item
           label="Email"
           name="email"
-          rules={[{ required: true, message: 'Please input your email!' }]}
+          rules={[{ required: true, message: 'Por favor, ingresa tu correo' }]}
         >
           <Input />
         </Form.Item>
 
         <Form.Item
-          label="Username"
+          label="Nombre de usuario"
           name="username"
-          rules={[{ required: true, message: 'Please input your username!' }]}
+          rules={[{ required: true, message: 'Por favor, ingresa tu nombre de usuario' }]}
         >
           <Input />
         </Form.Item>
 
         <Form.Item
-          label="Password"
+          label="Contraseña"
           name="password"
-          rules={[{ required: true, message: 'Please input your password!' }]}
+          rules={[{ required: true, message: 'Por favor, ingresa tu contraseña' }]}
         >
           <Input.Password />
         </Form.Item>
@@ -150,7 +147,7 @@ const RegisterPage = () => {
             className="register-button"
             size="large"
           >
-            Register
+            Registrarse
           </Button>
         </Form.Item>
         <div className="login-link">

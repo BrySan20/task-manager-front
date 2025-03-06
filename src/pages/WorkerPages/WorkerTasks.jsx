@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import MainLayout from '../../layouts/MainLayouts';
@@ -15,6 +15,8 @@ const WorkerTasks = () => {
   const username = localStorage.getItem('username'); // Usuario guardado
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  const intervalRef = useRef(null);
   useAxiosInterceptor();
 
   useEffect(() => {
@@ -43,6 +45,18 @@ const WorkerTasks = () => {
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       loadTasks();
+      
+      // Configurar intervalo de actualización automática cada 2.5 segundos
+      intervalRef.current = setInterval(() => {
+        loadTasksWithoutLoading();
+      }, 2500);
+      
+      // Limpiar intervalo cuando el componente se desmonte
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
     } else {
       Swal.fire({
         icon: 'error',
@@ -55,12 +69,13 @@ const WorkerTasks = () => {
     }
   }, [navigate]);
 
-  // Cargar tareas
+  // Cargar tareas con indicador de carga
   const loadTasks = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`https://task-manager-back-2xgi.onrender.com/api/workerTasks/${group.id}`);
       setTasks(response.data);
+      setLastUpdated(new Date());
       setLoading(false);
     } catch (error) {
       console.error('Error al cargar tareas:', error);
@@ -70,6 +85,25 @@ const WorkerTasks = () => {
         text: 'No se pudieron cargar las tareas. Por favor, intenta de nuevo.',
       });
       setLoading(false);
+    }
+  };
+
+  // Cargar tareas sin mostrar indicador de carga (para actualización silenciosa)
+  const loadTasksWithoutLoading = async () => {
+    try {
+      const response = await axios.get(`https://task-manager-back-2xgi.onrender.com/api/workerTasks/${group.id}`);
+      
+      // Comparar si ha habido cambios
+      const currentTasksJSON = JSON.stringify(tasks);
+      const newTasksJSON = JSON.stringify(response.data);
+      
+      if (currentTasksJSON !== newTasksJSON) {
+        setTasks(response.data);
+        setLastUpdated(new Date());
+      }
+    } catch (error) {
+      console.error('Error al actualizar tareas automáticamente:', error);
+      // No mostrar notificación para evitar interrupciones en caso de errores temporales
     }
   };
 
@@ -194,6 +228,10 @@ const WorkerTasks = () => {
         <h1>Tareas para el grupo: {group.groupName}</h1>
         <h1>Hola {username}</h1>
         <h2>Solo puedes modificar el estatus de tus tareas asignadas</h2>
+        
+        <div style={{ marginBottom: '15px', fontSize: '12px', color: '#666' }}>
+          Actualización automática cada 2.5 segundos. Última actualización: {lastUpdated.toLocaleTimeString()}
+        </div>
         
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '50px' }}>

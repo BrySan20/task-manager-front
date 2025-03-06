@@ -1,0 +1,47 @@
+/* AdminTaskGroups.css */
+
+/* Estilos para el tablero Kanban */
+.kanban-column {
+    width: 23%;
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  .kanban-column-header {
+    padding: 10px;
+    border-radius: 8px;
+    color: white;
+  }
+  
+  .kanban-task {
+    background-color: white;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 8px;
+    border-left: 5px solid;
+  }
+  
+  .task-priority {
+    display: inline-block;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-weight: bold;
+  }
+  
+  /* Botón flotante */
+  .floating-button {
+    position: fixed;
+    bottom: 70px;
+    right: 70px;
+    border-radius: 50%;
+    padding: 15px;
+    font-size: 20px;
+  }
+  
+  /* Estilos para el modal */
+  .modal-title {
+    font-size: 1.5em;
+  }
+  

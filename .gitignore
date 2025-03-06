@@ -1,0 +1,37 @@
+# Dependencias
+node_modules
+.pnp
+.pnp.js
+
+# Caché y logs
+.npm
+.eslintcache
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs
+*.log
+
+# Archivos de construcción
+dist
+dist-ssr
+*.local
+build
+
+# Archivos del entorno
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos del editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
